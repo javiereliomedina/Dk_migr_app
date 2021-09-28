@@ -59,13 +59,6 @@ periods <- as.Date(c("2008-01-01",
                      "2016-01-01",
                      "2020-01-01"))
 
-big_cities <- c("København", "Aarhus", "Odense", "Aalborg")
-big_cities <- dk_lau %>%
-  filter(LAU_NAME %in% big_cities) %>% 
-  mutate(date = c("2008-01-01"),
-         date = factor(date, levels = levels(factor(periods))),
-         date = as.Date(date))
-
 ## Palette YlGnBu, with 9 colours
 my_pal <- brewer.pal(9, "YlGnBu") 
 ## Add more colours to this palette :
