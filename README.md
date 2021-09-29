@@ -2,4 +2,4 @@
 
 # Description 
 
-Code for the Shiny app for evaluating the distribution of immigrants and their descendants by country of origin in Denmark ([link](https://javierelio.shinyapps.io/DK_migr_app/)).  
+Shiny app for evaluating the distribution of immigrants and their descendants by country of origin in Denmark ([link](https://javierelio.shinyapps.io/DK_migr_app/)).  
