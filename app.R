@@ -17,12 +17,6 @@ ui <- fluidPage(
                           "Choose country",
                           choices = levels(countries$text),
                           width = "100%")
-    ),
-    
-    column(3, selectInput("dates",
-                          "Select quarter",
-                          choices = dates,
-                          width = "100%")
     )
     
   ),
@@ -33,13 +27,22 @@ ui <- fluidPage(
            plotOutput("p_migr_year"))
     
   ),
+  
+  fluidRow(
+    
+    column(4, selectInput("dates",
+                          "Select quarter",
+                          choices = dates,
+                          width = "100%")
+    )
+  ),
     
   fluidRow(
     
-    column(4, "Total number by municipalities the first day of the quarter", 
+    column(6, "Total number by municipality", 
            dataTableOutput("tbl_pop_muni")),
     
-    column(8, "Geographic distribution the first day of the quarter",
+    column(6, "Geographic distribution",
            plotOutput("p_migr_muni"))
     
   )
@@ -55,7 +58,7 @@ server <- function(input, output, session) {
                              list(code = "IELAND", values = selec_ID()),
                              list(code = "Tid", values = NA)))
   get_pop <- reactive(get_data("FOLK1C", variables()) %>% 
-                        rename(region = OMRÅDE,
+                        rename(muni = OMRÅDE,
                                ancestry = HERKOMST,
                                origin = IELAND,
                                date = TID, 
@@ -63,7 +66,7 @@ server <- function(input, output, session) {
                         mutate(date = gsub("Q", "", date),
                                date = as_date_yq(as.integer(date)),
                                date = first_of_quarter(date)) %>% 
-                        mutate(region = gsub("Copenhagen", "København", region)) %>%
+                        mutate(muni = gsub("Copenhagen", "København", muni)) %>%
                         group_by(date, ancestry) %>% 
                         arrange(-pop) %>% 
                         mutate(pop_pct = 100 * pop / sum(pop, na.rm = TRUE),
@@ -73,7 +76,7 @@ server <- function(input, output, session) {
   )
   
   pop_lau <- reactive(dk_lau %>% 
-                        left_join(get_pop(), by = c("LAU_NAME" = "region")) %>% 
+                        left_join(get_pop(), by = c("LAU_NAME" = "muni")) %>% 
                         st_as_sf() 
   )
   
@@ -96,7 +99,7 @@ server <- function(input, output, session) {
     
     get_pop() %>% 
       filter(date == input$dates, ancestry == "Total") %>% 
-      select(region, pop, pop_pct, pop_pct_cum) %>% 
+      select(muni, pop, pop_pct, pop_pct_cum) %>% 
       mutate(across(where(is.numeric), round, 2)),
     options = list(pageLength = 5)
     
