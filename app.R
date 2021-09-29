@@ -111,15 +111,12 @@ server <- function(input, output, session) {
     pop_lau() %>% 
       filter(date == input$dates, ancestry == "Total") %>% 
       ggplot() +
-      geom_sf(aes(fill = pop_pct_cum_brk,
-                  group = interaction(pop_pct_cum_brk, date)),
+      geom_sf(aes(fill = pop_pct),
               color = "grey", 
               size = 0.05) +
-      scale_fill_manual(name = "Cumulative\npercentage [%]",
-                        values = my_pal,
-                        labels = seq(10, 100, 10),
-                        drop = FALSE) +
-      
+      scale_fill_viridis(name = "Percentage [%]",
+                         option = "mako",
+                         direction = -1) +
       labs(x = "",
            y = "",
            caption = "Data source: Statistics Denmark")  + 
