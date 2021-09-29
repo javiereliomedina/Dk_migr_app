@@ -3,31 +3,38 @@
 source("data.R")
 
 big_cities <- c("København", "Aarhus", "Odense", "Aalborg")
-big_cities <- dk_lau %>%
-  filter(LAU_NAME %in% big_cities) %>% 
-  mutate(date = c("2008-01-01"),
-         date = factor(date, levels = levels(factor(periods))),
-         date = as.Date(date))
+big_cities <- filter(dk_lau, LAU_NAME %in% big_cities) 
 
 # App ----
 
 ui <- fluidPage(
   
+  titlePanel("Immigrants and their descendants by country of origin in Denmark"), 
+  
   fluidRow(
-    column(6,
-           selectInput("country", 
-                       "Choose country",
-                       choices = levels(countries$text),
-                       width = "100%"
-           )
+    
+    column(4, selectInput("country", 
+                          "Choose country",
+                          choices = levels(countries$text),
+                          width = "100%")
+    ),
+    
+    column(3, selectInput("dates",
+                          "First day of the quarter",
+                          choices = dates,
+                          width = "100%")
     )
+    
   ),
   
   fluidRow(
-    column(4, "Number of immigrants and their descendants", 
+    
+    column(4, "Total number", 
            plotOutput("p_migr_year", width = "500px")),
-    column(8, "Distribution over the years in Denmark",
-           plotOutput("p_migr_muni", height = "700px"))
+    
+    column(8, "Geographic distribution by municipalities",
+           plotOutput("p_migr_muni", height = "650px"))
+    
   )
   
 )
@@ -48,7 +55,8 @@ server <- function(input, output, session) {
                                pop = INDHOLD) %>% 
                         mutate(date = gsub("Q", "", date),
                                date = as_date_yq(as.integer(date)),
-                               date = first_of_quarter(date)) 
+                               date = first_of_quarter(date)) %>% 
+                        mutate(region = gsub("Copenhagen", "København", region)) 
   )
   
   pop_lau <- reactive(dk_lau %>% 
@@ -79,7 +87,7 @@ server <- function(input, output, session) {
   output$p_migr_muni <- renderPlot({
     
     pop_lau() %>% 
-      filter(date %in% periods, ancestry == "Total") %>% 
+      filter(date == input$dates, ancestry == "Total") %>% 
       ggplot() +
       geom_sf(aes(fill = pop_pct_cum_brk,
                   group = interaction(pop_pct_cum_brk, date)),
@@ -93,14 +101,13 @@ server <- function(input, output, session) {
       labs(x = "",
            y = "")  + 
       ylim(54.50, 58.0) +
-      theme_plot() +
+      theme_bw() +
       geom_sf_label_repel(data = big_cities,
                           aes(label = LAU_NAME),
                           force = 10,
                           nudge_y = 3,
                           nudge_x = 0.5,
-                          seed = 10) +
-      facet_wrap(~date)
+                          seed = 10) 
     
   }, res = 96)
   

@@ -20,21 +20,6 @@ library(shiny)
 # if(!require("ggsflabel")) devtools::install_github("yutannihilation/ggsflabel")
 library(ggsflabel)
 
-# Define theme for ggplot2
-theme_plot <- function() {
-  theme_bw() +
-    theme(axis.text = element_text(size = 7),
-          axis.title = element_text(size = 9),
-          legend.title = element_text(size = 9, face = "bold"),
-          plot.title = element_text(size = 11, face = "bold"),
-          title = element_text(size = 9),
-          axis.ticks.x = element_blank(),
-          axis.text.x = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.text.y = element_blank(),
-          panel.grid.major = element_blank())
-}
-
 # Local Administrative Units (LAU) ----
 dk_lau <- readRDS(file = "DAGI/KOMMUNE.rds") %>% 
   mutate(KOMNAVN = factor(KOMNAVN)) %>% 
@@ -53,11 +38,11 @@ var_pop <- get_table_metadata(table_id = id_table, variables_only = TRUE)
 countries <- as_tibble(var_pop$values[[5]]) %>% 
   mutate(text = factor(text))
 
-# Plot only four years
-periods <- as.Date(c("2008-01-01",
-                     "2012-01-01",
-                     "2016-01-01",
-                     "2020-01-01"))
+dates <- var_pop$values[[6]]$id %>%
+  gsub("K", "", .) %>% 
+  as.integer() %>% 
+  as_date_yq() %>% 
+  first_of_quarter()
 
 ## Palette YlGnBu, with 9 colours
 my_pal <- brewer.pal(9, "YlGnBu") 
