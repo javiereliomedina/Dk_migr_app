@@ -5,9 +5,9 @@ account: javierelio
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4738382
-bundleId: 5083611
+bundleId: 5084056
 url: https://javierelio.shinyapps.io/DK_migr_app/
-when: 1632891354.28416
-lastSyncTime: 1632891354.28416
+when: 1632899270.18365
+lastSyncTime: 1632899270.18365
 asMultiple: FALSE
 asStatic: FALSE

@@ -44,6 +44,11 @@ dates <- var_pop$values[[6]]$id %>%
   as_date_yq() %>% 
   first_of_quarter()
 
+municipalities <- var_pop$values[[1]] %>% 
+  as_tibble() %>% 
+  mutate(id = as.numeric(id)) %>% 
+  filter(id > 100)
+  
 ## Palette YlGnBu, with 9 colours
 my_pal <- brewer.pal(9, "YlGnBu") 
 ## Add more colours to this palette :

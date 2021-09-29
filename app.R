@@ -29,11 +29,18 @@ ui <- fluidPage(
   
   fluidRow(
     
-    column(4, "Total number", 
-           plotOutput("p_migr_year", width = "500px")),
+    column(12, "Total number by year", 
+           plotOutput("p_migr_year"))
     
-    column(8, "Geographic distribution by municipalities",
-           plotOutput("p_migr_muni", height = "650px"))
+  ),
+    
+  fluidRow(
+    
+    column(4, "Total number by municipalities", 
+           dataTableOutput("tbl_pop_muni")),
+    
+    column(8, "Geographic distribution",
+           plotOutput("p_migr_muni"))
     
   )
   
@@ -43,7 +50,7 @@ server <- function(input, output, session) {
   
   selec_country <- reactive(countries %>% filter(text == input$country))
   selec_ID <- reactive(selec_country() %>% pull(id))
-  variables <- reactive(list(list(code = "OMRÅDE", values = NA),
+  variables <- reactive(list(list(code = "OMRÅDE", values = municipalities$id),
                              list(code = "HERKOMST", values = c("TOT", "4", "3")),
                              list(code = "IELAND", values = selec_ID()),
                              list(code = "Tid", values = NA)))
@@ -83,6 +90,19 @@ server <- function(input, output, session) {
       labs(y = "pop [x1000]")
     
   }, res = 96)
+  
+  output$tbl_pop_muni <- renderDataTable(
+    
+    get_pop() %>% 
+      filter(date == input$dates, ancestry == "Total") %>% 
+      arrange(-pop) %>% 
+      mutate(pop_pct = round(100 * (pop / sum(pop)), 2),
+             pop_pct_cum = cumsum(pop_pct)) %>% 
+      select(region, pop, pop_pct, pop_pct_cum),
+    options = list(pageLength = 5)
+    
+  )
+  
   
   output$p_migr_muni <- renderPlot({
     
