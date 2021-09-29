@@ -63,18 +63,18 @@ server <- function(input, output, session) {
                         mutate(date = gsub("Q", "", date),
                                date = as_date_yq(as.integer(date)),
                                date = first_of_quarter(date)) %>% 
-                        mutate(region = gsub("Copenhagen", "København", region)) 
-  )
-  
-  pop_lau <- reactive(dk_lau %>% 
-                        left_join(get_pop(), by = c("LAU_NAME" = "region")) %>% 
-                        st_as_sf() %>%
+                        mutate(region = gsub("Copenhagen", "København", region)) %>%
                         group_by(date, ancestry) %>% 
                         arrange(-pop) %>% 
                         mutate(pop_pct = 100 * pop / sum(pop, na.rm = TRUE),
                                pop_pct_cum = cumsum(pop_pct),
                                pop_pct_cum_brk = cut(pop_pct_cum, breaks = cumsum__breaks)) %>% 
-                        ungroup()
+                        ungroup() 
+  )
+  
+  pop_lau <- reactive(dk_lau %>% 
+                        left_join(get_pop(), by = c("LAU_NAME" = "region")) %>% 
+                        st_as_sf() 
   )
   
   
@@ -95,10 +95,8 @@ server <- function(input, output, session) {
     
     get_pop() %>% 
       filter(date == input$dates, ancestry == "Total") %>% 
-      arrange(-pop) %>% 
-      mutate(pop_pct = round(100 * (pop / sum(pop)), 2),
-             pop_pct_cum = cumsum(pop_pct)) %>% 
-      select(region, pop, pop_pct, pop_pct_cum),
+      select(region, pop, pop_pct, pop_pct_cum) %>% 
+      mutate(across(where(is.numeric), round, 2)),
     options = list(pageLength = 5)
     
   )
