@@ -121,7 +121,8 @@ server <- function(input, output, session) {
                         drop = FALSE) +
       
       labs(x = "",
-           y = "")  + 
+           y = "",
+           caption = "Data source: Statistics Denmark")  + 
       ylim(54.50, 58.0) +
       theme_void() +
       geom_sf_label_repel(data = big_cities,
