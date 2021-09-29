@@ -20,7 +20,7 @@ ui <- fluidPage(
     ),
     
     column(3, selectInput("dates",
-                          "First day of the quarter",
+                          "Select quarter",
                           choices = dates,
                           width = "100%")
     )
@@ -36,10 +36,10 @@ ui <- fluidPage(
     
   fluidRow(
     
-    column(4, "Total number by municipalities", 
+    column(4, "Total number by municipalities the first day of the quarter", 
            dataTableOutput("tbl_pop_muni")),
     
-    column(8, "Geographic distribution",
+    column(8, "Geographic distribution the first day of the quarter",
            plotOutput("p_migr_muni"))
     
   )
@@ -87,7 +87,8 @@ server <- function(input, output, session) {
       scale_colour_manual(name = "Ancestry", 
                           values = c("#D55E00", "#0072B2", "#000000")) +
       theme_bw() +
-      labs(y = "pop [x1000]")
+      labs(x = "",
+           y = "pop [x1000]")
     
   }, res = 96)
   
@@ -119,7 +120,7 @@ server <- function(input, output, session) {
       labs(x = "",
            y = "")  + 
       ylim(54.50, 58.0) +
-      theme_bw() +
+      theme_void() +
       geom_sf_label_repel(data = big_cities,
                           aes(label = LAU_NAME),
                           force = 10,
