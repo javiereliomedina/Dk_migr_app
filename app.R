@@ -1,6 +1,8 @@
 # Get data
 
+source("packages.R")
 source("data.R")
+source("local_adm_units.R")
 
 big_cities <- c("København", "Aarhus", "Odense", "Aalborg")
 big_cities <- filter(dk_lau, LAU_NAME %in% big_cities) 

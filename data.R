@@ -1,37 +1,7 @@
-# Plot immigrants and their descendant in Denmark
+## Population data from Statistic Denmark (https://www.statbank.dk/10021)
 
-library(danstat) 
-library(tidyverse)
-library(readr)
-library(dint)
-library(patchwork)
-library(gridExtra)
-library(forcats)
-library(RColorBrewer)
-library(furrr)
-library(sf)
-library(giscoR)
-library(viridis)
-library(gganimate)
-library(tidytable)
-library(shiny)
+# Immigrants and their descendant in Denmark (Table: FOLK1C) ----
 
-# # if(!require("devtools"))  install.packages("devtools")
-# if(!require("ggsflabel")) devtools::install_github("yutannihilation/ggsflabel")
-library(ggsflabel)
-
-# Local Administrative Units (LAU) ----
-dk_lau <- readRDS(file = "DAGI/KOMMUNE.rds") %>% 
-  mutate(KOMNAVN = factor(KOMNAVN)) %>% 
-  st_transform(crs = 4326) %>% 
-  group_by(KOMNAVN) %>%
-  summarise(geometry = st_union(geometry)) %>% 
-  ungroup() %>% 
-  rename(LAU_NAME = KOMNAVN)
-
-# Population data from Statistic Denmark (https://www.statbank.dk/10021)
-
-# Table: FOLK1C
 id_table <- "FOLK1C"
 var_pop <- get_table_metadata(table_id = id_table, variables_only = TRUE)
 
