@@ -9,44 +9,101 @@ big_cities <- filter(dk_lau, LAU_NAME %in% big_cities)
 
 ui <- fluidPage(
   
-  titlePanel("Immigrants and their descendants by country of origin in Denmark"), 
-  
-  fluidRow(
+  tabsetPanel(
     
-    column(4, selectInput("country", 
-                          "Choose country",
-                          choices = levels(countries$text),
-                          width = "100%")
+    tabPanel("Immigrants and their descendants",
+             
+             titlePanel("Immigrants and their descendants by country of origin in Denmark"), 
+             
+             fluidRow(
+               
+               column(4, selectInput("country", 
+                                     "Choose country",
+                                     choices = levels(countries$text),
+                                     width = "100%")
+               )
+               
+             ),
+             
+             fluidRow(
+               
+               column(12, "Total number by year", 
+                      plotOutput("p_migr_year"))
+               
+             ),
+             
+             fluidRow(
+               
+               column(4, selectInput("dates",
+                                     "Select quarter",
+                                     choices = dates,
+                                     width = "100%")
+               )
+             ),
+             
+             fluidRow(
+               
+               column(6, "Total number by municipality", 
+                      dataTableOutput("tbl_pop_muni")),
+               
+               column(6, "Geographic distribution",
+                      plotOutput("p_migr_muni"))
+               
+             )
+             
+    ),
+    
+    tabPanel("Internal migration",
+             
+             titlePanel("Internal movements between municipalities"),
+             
+             fluidRow(
+               
+               column(4, selectInput("target_muni", 
+                                     "Choose municipality",
+                                     choices = levels(factor(internal_migr$TILKOMMUNE)),
+                                     width = "100%")
+               ),
+               
+               column(4, selectInput("year", 
+                                     "Choose year",
+                                     choices = levels(factor(internal_migr$TID)),
+                                     width = "100%")
+               ),
+               
+               column(4, numericInput("top", 
+                                      label = "Top N municipalities by movements",
+                                      value = 15, 
+                                      step = 5,
+                                      max = 99,
+                                      width = "100%")
+               )
+               
+             ),
+             
+             fluidRow(
+               
+               column(6, "Out-migration", 
+                      plotOutput("p_out_mov")),
+               
+               column(6, "In-migration", 
+                      plotOutput("p_in_mov"))
+               
+             ),
+             
+             fluidRow(
+               
+               column(6, " ", 
+                      dataTableOutput("tbl_out")),
+               
+               column(6, " ", 
+                      dataTableOutput("tbl_in"))
+               
+             )
+             
     )
-    
-  ),
-  
-  fluidRow(
-    
-    column(12, "Total number by year", 
-           plotOutput("p_migr_year"))
-    
-  ),
-  
-  fluidRow(
-    
-    column(4, selectInput("dates",
-                          "Select quarter",
-                          choices = dates,
-                          width = "100%")
-    )
-  ),
-  
-  fluidRow(
-    
-    column(6, "Total number by municipality", 
-           dataTableOutput("tbl_pop_muni")),
-    
-    column(6, "Geographic distribution",
-           plotOutput("p_migr_muni"))
     
   )
-  
 )
 
 server <- function(input, output, session) {
@@ -130,6 +187,90 @@ server <- function(input, output, session) {
                           seed = 10) 
     
   }, res = 96)
+  
+  get_out <- reactive(internal_migr %>% 
+                        filter(TILKOMMUNE == input$target_muni,
+                               INDHOLD > 0,
+                               TID == input$year) %>%
+                        slice_max(INDHOLD, n = input$top))
+  
+  get_in <- reactive(internal_migr %>% 
+                       filter(FRAKOMMUNE == input$target_muni,
+                              INDHOLD > 0,
+                              TID == input$year) %>%
+                       slice_max(INDHOLD, n = input$top))
+  
+  output$p_out_mov <- renderPlot({
+    
+    ggplot() +
+      geom_sf(data = dk_lau) +
+      geom_curve(data = get_out(),
+                 aes(x = TIL_long,
+                     y = TIL_lat,
+                     xend = FRA_long,
+                     yend = FRA_lat,
+                     colour = INDHOLD),
+                 size = 0.75,
+                 alpha = 0.65,
+                 curvature = -0.2, arrow = arrow(length = unit(0.01, "npc"))) +
+      scale_colour_viridis(name = "Frequency",
+                           option = "rocket",
+                           trans = "log10",
+                           direction = -1) +
+      coord_sf() +
+      theme_void()
+    
+  }, res = 96
+  
+  )
+  
+  output$p_in_mov <- renderPlot({
+    
+    ggplot() +
+      geom_sf(data = dk_lau) +
+      geom_curve(data = get_in(),
+                 aes(x = TIL_long,
+                     y = TIL_lat,
+                     xend = FRA_long,
+                     yend = FRA_lat,
+                     colour = INDHOLD),
+                 size = 0.75,
+                 alpha = 0.65,
+                 curvature = -0.2, arrow = arrow(length = unit(0.01, "npc"))) +
+      scale_colour_viridis(name = "Frequency",
+                           option = "mako",
+                           trans = "log10",
+                           direction = -1) +
+      coord_sf() +
+      theme_void()
+    
+  }, res = 96
+  
+  )
+  
+  output$tbl_out <- renderDataTable(
+    
+    get_out() %>% 
+      select(FRAKOMMUNE, INDHOLD) %>% 
+      rename(To = FRAKOMMUNE,
+             Value = INDHOLD) %>% 
+      arrange(-Value) %>% 
+      mutate(across(where(is.numeric), round, 0)),
+    options = list(pageLength = 5)
+    
+  )
+  
+  output$tbl_in <- renderDataTable(
+    
+    get_in() %>% 
+      select(TILKOMMUNE, INDHOLD) %>% 
+      rename(From = TILKOMMUNE,
+             Value = INDHOLD) %>% 
+      arrange(-Value) %>% 
+      mutate(across(where(is.numeric), round, 0)),
+    options = list(pageLength = 5)
+    
+  )
   
 }
 
