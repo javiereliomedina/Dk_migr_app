@@ -189,13 +189,13 @@ server <- function(input, output, session) {
   }, res = 96)
   
   get_out <- reactive(internal_migr %>% 
-                        filter(TILKOMMUNE == input$target_muni,
+                        filter(FRAKOMMUNE == input$target_muni,
                                INDHOLD > 0,
                                TID == input$year) %>%
                         slice_max(INDHOLD, n = input$top))
   
   get_in <- reactive(internal_migr %>% 
-                       filter(FRAKOMMUNE == input$target_muni,
+                       filter(TILKOMMUNE == input$target_muni,
                               INDHOLD > 0,
                               TID == input$year) %>%
                        slice_max(INDHOLD, n = input$top))
@@ -205,10 +205,10 @@ server <- function(input, output, session) {
     ggplot() +
       geom_sf(data = dk_lau) +
       geom_curve(data = get_out(),
-                 aes(x = TIL_long,
-                     y = TIL_lat,
-                     xend = FRA_long,
-                     yend = FRA_lat,
+                 aes(x = FRA_long,
+                     y = FRA_lat,
+                     xend = TIL_long,
+                     yend = TIL_lat,
                      colour = INDHOLD),
                  size = 0.75,
                  alpha = 0.65,
@@ -229,10 +229,10 @@ server <- function(input, output, session) {
     ggplot() +
       geom_sf(data = dk_lau) +
       geom_curve(data = get_in(),
-                 aes(x = TIL_long,
-                     y = TIL_lat,
-                     xend = FRA_long,
-                     yend = FRA_lat,
+                 aes(x = FRA_long,
+                     y = FRA_lat,
+                     xend = TIL_long,
+                     yend = TIL_lat,
                      colour = INDHOLD),
                  size = 0.75,
                  alpha = 0.65,
@@ -251,8 +251,8 @@ server <- function(input, output, session) {
   output$tbl_out <- renderDataTable(
     
     get_out() %>% 
-      select(FRAKOMMUNE, INDHOLD) %>% 
-      rename(To = FRAKOMMUNE,
+      select(TILKOMMUNE, INDHOLD) %>% 
+      rename(To = TILKOMMUNE,
              Value = INDHOLD) %>% 
       arrange(-Value) %>% 
       mutate(across(where(is.numeric), round, 0)),
@@ -263,8 +263,8 @@ server <- function(input, output, session) {
   output$tbl_in <- renderDataTable(
     
     get_in() %>% 
-      select(TILKOMMUNE, INDHOLD) %>% 
-      rename(From = TILKOMMUNE,
+      select(FRAKOMMUNE, INDHOLD) %>% 
+      rename(From = FRAKOMMUNE,
              Value = INDHOLD) %>% 
       arrange(-Value) %>% 
       mutate(across(where(is.numeric), round, 0)),
